@@ -1,10 +1,10 @@
-import HeroSection from "../components/HeroSection/HeroSection"
-// import BenefitsSection from "../components/home/BenefitsSection"
+import HeroSection from "../components/Home/HeroSection"
+import BenefitsSection from "../components/Home/BenefitsSection"
 // import SimulatorSection from "../components/home/SimulatorSection"
 // import RatesSection from "../components/home/RatesSection"
 // import ApplicationFormSection from "../components/home/ApplicationFormSection"
 // import FaqSection from "../components/home/FaqSection"
-// import ContactSection from "../components/home/ContactSection"
+import ContactSection from "../components/Home/ContactSection"
 
 export default function Home() {
   return (
@@ -12,13 +12,13 @@ export default function Home() {
 
       <main className="flex-1">
         <HeroSection />
-
-        {/* <BenefitsSection />
+        <BenefitsSection />
+        {/* 
         <SimulatorSection />
         <RatesSection />
         <ApplicationFormSection />
-        <FaqSection />
-        <ContactSection /> */}
+        <FaqSection />*/}
+        <ContactSection /> 
       </main>
     </div>
   )
