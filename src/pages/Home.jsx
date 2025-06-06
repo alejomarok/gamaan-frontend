@@ -3,8 +3,9 @@ import BenefitsSection from "../components/Home/BenefitsSection"
 // import SimulatorSection from "../components/home/SimulatorSection"
 // import RatesSection from "../components/home/RatesSection"
 // import ApplicationFormSection from "../components/home/ApplicationFormSection"
-// import FaqSection from "../components/home/FaqSection"
+import FaqSection from "../components/Home/FaqSection"
 import ContactSection from "../components/Home/ContactSection"
+import CreditosSection from "../components/Home/CreditosSection"
 
 export default function Home() {
   return (
@@ -13,11 +14,12 @@ export default function Home() {
       <main className="flex-1">
         <HeroSection />
         <BenefitsSection />
+        <CreditosSection />
         {/* 
         <SimulatorSection />
         <RatesSection />
-        <ApplicationFormSection />
-        <FaqSection />*/}
+        <ApplicationFormSection />*/}
+        <FaqSection />
         <ContactSection /> 
       </main>
     </div>
