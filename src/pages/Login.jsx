@@ -42,7 +42,8 @@ export default function Login() {
 
         <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-6">
-            <div className="mx-auto mb-4 w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: '#003226' }}>
               <span className="text-2xl font-bold text-white">G</span>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Bienvenido a Gamaan</CardTitle>
@@ -115,7 +116,8 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 transition-colors"
+                className="w-full hover:bg-green-700 text-white font-medium py-2.5 transition-colors"
+                style={{ backgroundColor: '#003226' }}
               >
                 Iniciar Sesión
               </Button>
