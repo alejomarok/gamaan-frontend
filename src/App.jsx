@@ -26,9 +26,7 @@ export default function App() {
       <Route
         path="/login"
         element={
-          <MainLayout>
             <Login />
-          </MainLayout>
         }
       />
 
