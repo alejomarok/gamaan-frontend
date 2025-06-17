@@ -1,7 +1,14 @@
 import { ArrowRight, Home } from "lucide-react"
 import { Button } from "../ui/button"
+import { useNavigate } from "react-router-dom" 
 
 export default function CreditoHipotecarioSection() {
+  const navigate = useNavigate(); // Hook para navegación
+
+  const handleSolicitarClick = () => {
+    navigate("../credito-hipotecario"); // Cambia la ruta según tu configuración de rutas
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="flex items-center gap-4 mb-4">
@@ -31,7 +38,10 @@ export default function CreditoHipotecarioSection() {
         </li>
       </ul>
 
-      <Button className="w-full bg-[#003226] hover:bg-[#00291f] text-white">
+      <Button
+        className="w-full bg-[#003226] hover:bg-[#00291f] text-white"
+        onClick={handleSolicitarClick}
+      >
         Solicitar Crédito Hipotecario
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
