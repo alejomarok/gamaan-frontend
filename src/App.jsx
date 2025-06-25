@@ -8,7 +8,7 @@ import CreditoPersonalForm from "./components/Forms/CreditoPersonalForm"
 // Páginas
 import Home from "@/pages/Home"
 import Login from "@/pages/Login"
-// import Dashboard from '@/pages/admin/Dashboard'
+import Dashboard from '@/pages/admin/Dashboard'
 
 export default function App() {
   return (
@@ -59,7 +59,7 @@ export default function App() {
       />
 
       {/* Rutas protegidas o del panel admin */}
-      {/* <Route path="/admin/dashboard" element={<Dashboard />} /> */}
+      <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   )
 }
