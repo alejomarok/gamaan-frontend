@@ -1,8 +1,8 @@
 import DashboardLayout from "../../layouts/DashboardLayout"
 // import DashboardStats from "../components/dashboard/DashboardStats"
 // import DashboardCharts from "../components/dashboard/DashboardCharts"
-// import ApplicationsTable from "../components/dashboard/ApplicationsTable"
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import ApplicationsTable from "../../components/Dashboard/ApplicationsTable"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 
 export default function Dashboard() {
   return (
@@ -12,10 +12,10 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Bienvenido al panel de administración de Gamaan.</p>
         </div>
+{/* 
+        <DashboardStats />
 
-        {/* <DashboardStats />
-
-        <DashboardCharts />
+        <DashboardCharts /> */}
 
         <Card>
           <CardHeader>
@@ -25,7 +25,7 @@ export default function Dashboard() {
           <CardContent>
             <ApplicationsTable />
           </CardContent>
-        </Card> */}
+        </Card> 
       </div>
     </DashboardLayout>
   )
