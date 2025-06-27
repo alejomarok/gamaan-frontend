@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ChevronDown } from "lucide-react"
 import { Button } from "../ui/button"
+import logo from "../../assets/logo.png"
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -12,7 +13,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-white">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center">
-          <span className="text-2xl font-bold text-[#003226]">Gamaan</span>
+          <img src={logo} alt="Gamaan Logo" className="h-10 w-auto max-h-12 sm:h-12 sm:max-h-16 md:h-12"  />
         </Link>
 
         <nav

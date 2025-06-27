@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom"
 import { ArrowLeft, FileText, Home, LogOut, Settings, Users, X } from "lucide-react"
 import { Button } from "../ui/button"
 import { cn } from "../../lib/utils"
+import logo from "../../assets/logo.png"
 
 export default function DashboardSidebar({ open, setOpen }) {
   const location = useLocation()
@@ -28,7 +29,7 @@ export default function DashboardSidebar({ open, setOpen }) {
         {/* Header */}
         <div className="border-b px-4 py-4 flex justify-between items-center">
           <Link to="/dashboard" className="flex items-center">
-            <span className="text-xl font-bold text-[#003226]">Gamaan</span>
+            <img src={logo} alt="Gamaan Logo" className="h-10 w-auto max-h-12 sm:h-12 sm:max-h-16 md:h-16"  />
             <span className="ml-2 rounded-md bg-[#003226] px-1.5 py-0.5 text-xs font-medium text-white">Admin</span>
           </Link>
 

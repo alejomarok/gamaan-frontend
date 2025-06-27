@@ -1,4 +1,5 @@
 import { Facebook, Instagram, MessageCircle } from "lucide-react"
+import logo2 from "../../assets/logo2.png"
 
 export default function Footer() {
   return (
@@ -6,8 +7,11 @@ export default function Footer() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-2xl font-bold mb-4">Gamaan</h3>
-            <p className="text-[#DBC5A8]">Soluciones financieras a tu medida</p>
+             <img
+    src={logo2}
+    alt="Logo Gamaan"
+    className="h-40 w-auto max-h-24 sm:h-12 sm:max-h-40 md:h-72" // ajustás a gusto
+  />
           </div>
           <div>
             <h4 className="text-lg font-semibold mb-4">Contacto</h4>
