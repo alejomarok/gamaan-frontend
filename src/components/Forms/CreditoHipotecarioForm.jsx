@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "../ui/textarea"
 import { ArrowLeft, Home } from "lucide-react"
 
+import { db } from "../../firebaseconfig"; 
+import { collection, addDoc } from "firebase/firestore";
+
 export default function CreditoHipotecarioForm() {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -25,10 +28,18 @@ export default function CreditoHipotecarioForm() {
     observaciones: "",
   })
 
+  const enviarSolicitudAFirebase = async (data) => {
+      try {
+        await addDoc(collection(db, "creditosHipotecarios"), data);
+        alert("Solicitud enviada correctamente. Nos contactaremos contigo pronto.");
+      } catch (error) {
+        alert("Error al enviar la solicitud: " + error.message);
+      }
+    };
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log("Datos del formulario hipotecario:", formData)
-    alert("Solicitud enviada correctamente. Nos contactaremos contigo pronto.")
+    enviarSolicitudAFirebase(formData)
   }
 
   const handleChange = (field, value) => {

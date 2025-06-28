@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "../ui/textarea"
 import { ArrowLeft, Car } from "lucide-react"
 
+import { db } from "../../firebaseconfig"; 
+import { collection, addDoc } from "firebase/firestore";
+
 export default function CreditoPrendarioForm() {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -26,10 +29,18 @@ export default function CreditoPrendarioForm() {
     observaciones: "",
   })
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log("Datos del formulario prendario:", formData)
-    alert("Solicitud enviada correctamente. Nos contactaremos contigo pronto.")
+  const enviarSolicitudAFirebase = async (data) => {
+    try {
+      await addDoc(collection(db, "creditosPrendarios"), data);
+      alert("Solicitud enviada correctamente. Nos contactaremos contigo pronto.");
+    } catch (error) {
+      alert("Error al enviar la solicitud: " + error.message);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await enviarSolicitudAFirebase(formData);
   }
 
   const handleChange = (field, value) => {

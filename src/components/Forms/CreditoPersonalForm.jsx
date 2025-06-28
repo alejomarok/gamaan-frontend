@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "../ui/textarea"
 import { ArrowLeft, CreditCard } from "lucide-react"
 
+import { db } from "../../firebaseconfig"; 
+import { collection, addDoc } from "firebase/firestore";
+
 export default function CreditoPersonalForm() {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -24,10 +27,18 @@ export default function CreditoPersonalForm() {
     observaciones: "",
   })
 
+  const enviarSolicitudAFirebase = async (data) => {
+    try {
+      await addDoc(collection(db, "creditosPersonales"), data);
+      alert("Solicitud enviada correctamente. Nos contactaremos contigo pronto.");
+    } catch (error) {
+      alert("Error al enviar la solicitud: " + error.message);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log("Datos del formulario personal:", formData)
-    alert("Solicitud enviada correctamente. Nos contactaremos contigo pronto.")
+    enviarSolicitudAFirebase(formData)
   }
 
   const handleChange = (field, value) => {
