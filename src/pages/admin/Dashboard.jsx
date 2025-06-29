@@ -1,9 +1,7 @@
 import DashboardLayout from "../../layouts/DashboardLayout"
-// import DashboardStats from "../components/dashboard/DashboardStats"
-// import DashboardCharts from "../components/dashboard/DashboardCharts"
 import ApplicationsTable from "../../components/Dashboard/ApplicationsTable"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-
+import UserManagement from "../Users"
 export default function Dashboard() {
   return (
     <DashboardLayout>
@@ -12,10 +10,6 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Bienvenido al panel de administración de Gamaan.</p>
         </div>
-{/* 
-        <DashboardStats />
-
-        <DashboardCharts /> */}
 
         <Card>
           <CardHeader>
@@ -25,7 +19,18 @@ export default function Dashboard() {
           <CardContent>
             <ApplicationsTable />
           </CardContent>
-        </Card> 
+        </Card>
+
+        {/* Gestión de usuarios */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Gestión de Usuarios</CardTitle>
+            <CardDescription>Visualiza y cambia los roles de los usuarios del sistema.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <UserManagement />
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )

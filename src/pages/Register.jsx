@@ -8,6 +8,10 @@ import { Label } from "../components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react"
 
+
+import { db } from "../firebaseconfig"; 
+import { collection, addDoc } from "firebase/firestore";
+
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -17,8 +21,18 @@ export default function Register() {
     email: "",
     phone: "",
     password: "",
-    confirmPassword: "",
+    rol:"Cliente",
   })
+
+  // Función para enviar los datos del formulario a Firebase
+  const enviarDatosAFirebase = async (data) => {
+    try {
+      const docRef = await addDoc(collection(db, "users"), data)
+      alert("Usuario registrado correctamente. ¡Bienvenido! ", data.firstName)
+    } catch (e) {
+      console.error("Error registrando usuario: ", e)
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -31,7 +45,8 @@ export default function Register() {
   const handleSubmit = (e) => {
     e.preventDefault()
     // Aquí se implementará la lógica de registro
-    console.log("Register attempt:", formData)
+    console.log("Intento de registro:", formData)
+    enviarDatosAFirebase(formData)
   }
 
   return (
@@ -153,32 +168,6 @@ export default function Register() {
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
-                  Confirmar contraseña
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="pl-10 pr-10 border-gray-300 focus:border-green-500 focus:ring-green-500"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
