@@ -14,6 +14,7 @@ import Register from "@/pages/Register"
 import CalculadorTasas from "./pages/CalculadorTasas"
 import UserManagement from "./pages/Users"
 import Dashboard from "@/pages/admin/Dashboard"
+import SolicitudesPage from "./pages/Solicitudes"
 
 export default function App() {
   return (
@@ -49,6 +50,14 @@ export default function App() {
         element={
           <DashboardLayout>
             <CalculadorTasas />
+          </DashboardLayout>
+      }
+      />
+      <Route
+        path="/dashboard/solicitudes"
+        element={
+          <DashboardLayout>
+            <SolicitudesPage />
           </DashboardLayout>
         }
       />
