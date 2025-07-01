@@ -13,9 +13,10 @@ export default function DashboardSidebar({ open, setOpen }) {
 
   const menuItems = [
     { title: "Dashboard", icon: Home, href: "/dashboard" },
-    { title: "Solicitudes", icon: FileText, href: "/applications" },
-    { title: "Configuraciones", icon: Settings, href: "/settings" },
-    { title: "Usuarios", icon: Users, href: "/users" },
+    { title: "Solicitudes", icon: FileText, href: "/dashboard/Solicitudes" },
+    { title: "Configuraciones", icon: Settings, href: "/dashboard/settings" },
+    { title: "Usuarios", icon: Users, href: "/dashboard/users" },
+    { title: "Simulador de Crédito", icon: FileText, href: "/dashboard/calculador-tasas" },
   ]
 
   return (
