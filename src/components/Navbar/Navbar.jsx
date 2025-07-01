@@ -11,67 +11,48 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex items-center justify-between h-16">
+        {/* Logo */}
         <Link to="/" className="flex items-center">
           <img
             src={logo}
             alt="Gamaan Logo"
-            className="h-12 w-auto max-h-12 sm:h-12 sm:max-h-16 md:h-12"
+            className="h-12 w-auto object-contain"
           />
         </Link>
 
-        {/* Menú mobile */}
+        {/* Navegación */}
         <nav
           className={`${
             mobileMenuOpen ? "flex" : "hidden"
-          } md:flex flex-col md:flex-row md:items-center absolute top-16 left-0 w-full md:static bg-white border-b md:border-none shadow-md md:shadow-none p-4 md:p-0 gap-4 z-50`}
+          } md:flex flex-col md:flex-row md:items-center gap-4 md:gap-6 absolute md:static top-16 left-0 w-full md:w-auto bg-white p-4 md:p-0 border-b md:border-none z-50`}
         >
-          <Link
-            to="/"
-            className="text-sm font-medium hover:text-[#003226] transition"
-            onClick={() => setMobileMenuOpen(false)}
-          >
+          <Link to="/" className="text-sm font-medium hover:text-[#003226]">
             Inicio
           </Link>
-          <a
-            href="#solicitud"
-            className="text-sm font-medium hover:text-[#003226] transition"
-            onClick={() => setMobileMenuOpen(false)}
-          >
+          <a href="#solicitud" className="text-sm font-medium hover:text-[#003226]">
             Solicitá tu Crédito
           </a>
-          <a
-            href="#faq"
-            className="text-sm font-medium hover:text-[#003226] transition"
-            onClick={() => setMobileMenuOpen(false)}
-          >
+          <a href="#faq" className="text-sm font-medium hover:text-[#003226]">
             Preguntas Frecuentes
           </a>
-          <a
-            href="#contacto"
-            className="text-sm font-medium hover:text-[#003226] transition"
-            onClick={() => setMobileMenuOpen(false)}
-          >
+          <a href="#contacto" className="text-sm font-medium hover:text-[#003226]">
             Contacto
           </a>
 
-          {/* Solo visible en mobile */}
-          <div className="flex flex-col gap-2 md:hidden mt-2">
+          {/* Login y Dashboard SOLO en mobile */}
+          <div className="flex flex-col gap-2 md:hidden">
             <Button variant="outline" asChild>
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                Login
-              </Link>
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
             </Button>
             <Button asChild>
-              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                Acceso Clientes
-              </Link>
+              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Acceso Clientes</Link>
             </Button>
           </div>
         </nav>
 
-        {/* Botones en escritorio */}
-        <div className="hidden md:flex gap-2">
+        {/* Botones (solo escritorio) */}
+        <div className="hidden md:flex items-center gap-2">
           <Button variant="outline" asChild>
             <Link to="/login">Login</Link>
           </Button>
