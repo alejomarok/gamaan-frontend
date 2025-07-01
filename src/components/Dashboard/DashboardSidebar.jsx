@@ -2,14 +2,23 @@ import { Link, useLocation } from "react-router-dom"
 import { ArrowLeft, FileText, Home, LogOut, Settings, Users, X } from "lucide-react"
 import { Button } from "../ui/button"
 import { cn } from "../../lib/utils"
-import logo from "../../assets/logo.png"
+import logo2 from "../../assets/logo2.png"
 
 export default function DashboardSidebar({ open, setOpen }) {
   const location = useLocation()
 
-  const isActive = (path) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`)
+const isActive = (path) => {
+  const current = location.pathname.toLowerCase()
+  const target = path.toLowerCase()
+
+  // Si es el dashboard exacto, solo marcamos si es exactamente igual
+  if (target === "/dashboard") {
+    return current === "/dashboard"
   }
+
+  // Para las demás, permitimos subrutas
+  return current === target || current.startsWith(target + "/")
+}
 
   const menuItems = [
     { title: "Dashboard", icon: Home, href: "/dashboard" },
@@ -21,77 +30,77 @@ export default function DashboardSidebar({ open, setOpen }) {
 
   return (
     <div
-      className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
-        open ? "translate-x-0" : "-translate-x-full"
-      )}
-    >
-      <div className="flex h-full flex-col">
-        {/* Header */}
-        <div className="border-b px-4 py-4 flex justify-between items-center">
-          <Link to="/dashboard" className="flex items-center">
-            <img src={logo} alt="Gamaan Logo" className="h-10 w-auto max-h-12 sm:h-12 sm:max-h-16 md:h-16"  />
-            <span className="ml-2 rounded-md bg-[#003226] px-1.5 py-0.5 text-xs font-medium text-white">Admin</span>
+  className={cn(
+    "fixed left-0 top-0 z-40 w-64 h-screen transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+    open ? "translate-x-0" : "-translate-x-full",
+    "bg-[#003226] text-white flex flex-col"
+  )}
+>
+
+      {/* Header */}
+      <div className="border-b border-[#00271e] px-4 py-4 flex justify-between items-center">
+        <Link to="/dashboard" className="flex items-center">
+          <img src={logo2} alt="Gamaan Logo" className="h-10 w-auto sm:h-12 md:h-14" />
+          <span className="ml-2 rounded-md bg-white px-1.5 py-0.5 text-xs font-medium text-[#003226]">
+            Admin
+          </span>
+        </Link>
+        <Button
+          onClick={() => setOpen(false)}
+          variant="ghost"
+          size="icon"
+          className="text-white lg:hidden"
+        >
+          <X className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Navegación */}
+      {/* Navegación */}
+<div className="flex-1 py-4">
+  <nav className="grid px-2 text-sm font-medium">
+    {menuItems.map((item, index) => {
+      const Icon = item.icon
+      return (
+        <Link
+          key={index}
+          to={item.href}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+            isActive(item.href)
+              ? "bg-[#DBC5A8] text-[#003226] font-semibold"
+              : "text-white hover:bg-[#004432]"
+          )}
+        >
+          <Icon className="h-4 w-4" />
+          {item.title}
+        </Link>
+      )
+    })}
+  </nav>
+</div>
+
+
+      {/* Footer fijo */}
+      <div className="border-t border-[#00271e] p-4 space-y-2">
+        <Button
+          asChild
+          variant="outline"
+          className="w-full justify-start gap-2 text-sm bg-white text-[#003226] hover:bg-[#DBC5A8]"
+        >
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" />
+            Volver al sitio
           </Link>
+        </Button>
 
-          {/* Botón para cerrar la sidebar (solo en móvil) */}
-          <Button
-            onClick={() => setOpen(false)}
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Navegación */}
-        <div className="flex-1 overflow-auto py-2">
-          <nav className="grid items-start px-2 text-sm font-medium">
-            {menuItems.map((item, index) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={index}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                    isActive(item.href)
-                      ? "bg-[#003226] text-white"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.title}
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto border-t p-4 space-y-2">
-          {/* Botón volver al sitio, ahora más compacto */}
-          <Button
-            asChild
-            variant="outline"
-            className="w-full justify-start gap-2 text-sm"
-          >
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              Volver al sitio
-            </Link>
-          </Button>
-
-          {/* Cerrar sesión */}
-          <Link
-            to="/login"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-            Cerrar sesión
-          </Link>
-        </div>
+        <Link
+          to="/login"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white transition-all hover:bg-[#004432]"
+        >
+          <LogOut className="h-4 w-4" />
+          Cerrar sesión
+        </Link>
       </div>
     </div>
   )
