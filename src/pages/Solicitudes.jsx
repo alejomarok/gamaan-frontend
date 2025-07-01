@@ -624,13 +624,9 @@ const SolicitudesPage = () => {
   return (
     <div className="solicitudes-page">
       <div className="page-header">
-        <div>
-          <h1>Solicitudes recientes</h1>
-          <p>Gestiona las solicitudes de crédito recibidas desde Firebase.</p>
-        </div>
         <div className="header-actions">
           <button className="refresh-button" onClick={cargarSolicitudes}>
-            🔄 Actualizar
+             Actualizar
           </button>
         </div>
       </div>

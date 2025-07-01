@@ -26,6 +26,7 @@ export default function CreditoHipotecarioForm() {
     tipoPropiedad: "",
     ubicacion: "",
     observaciones: "",
+    estado: "pendiente",
   })
 
   const enviarSolicitudAFirebase = async (data) => {

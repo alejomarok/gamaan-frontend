@@ -24,6 +24,7 @@ export default function CreditoPersonalForm() {
     plazo: "",
     destino: "",
     situacionLaboral: "",
+    estado: "pendiente",
     observaciones: "",
   })
 
