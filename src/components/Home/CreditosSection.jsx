@@ -14,11 +14,12 @@ export default function CreditosSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <CreditoPrendarioSection />
-          <CreditoPersonalSection />
-          <CreditoHipotecarioSection />
-        </div>
+        <div className="grid gap-6 md:grid-cols-3 items-stretch">
+  <CreditoHipotecarioSection />
+  <CreditoPersonalSection />
+  <CreditoPrendarioSection />
+</div>
+
       </div>
     </section>
   )
