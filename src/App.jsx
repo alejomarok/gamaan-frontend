@@ -1,20 +1,25 @@
 import { Routes, Route } from "react-router-dom"
 import MainLayout from "@/layouts/MainLayout"
-import DashboardLayout from "@/layouts/DashboardLayout" // Asegurate de importarlo
 
-// Formularios
+// Páginas Home 
+import Home from "@/pages/Home"
+import Login from "@/pages/Login"
+import Register from "@/pages/Register"
+// Formularios del Home 
 import CreditoHipotecarioForm from "./components/Forms/CreditoHipotecarioForm"
 import CreditoPrendarioForm from "./components/Forms/CreditoPrendarioForm"
 import CreditoPersonalForm from "./components/Forms/CreditoPersonalForm"
 
-// Páginas
-import Home from "@/pages/Home"
-import Login from "@/pages/Login"
-import Register from "@/pages/Register"
+// Dashboard
+import Dashboard from "@/pages/admin/Dashboard"
+import DashboardLayout from "@/layouts/DashboardLayout" 
+// Páginas del dashboard
 import CalculadorTasas from "./pages/CalculadorTasas"
 import UserManagement from "./pages/Users"
-import Dashboard from "@/pages/admin/Dashboard"
 import SolicitudesPage from "./pages/Solicitudes"
+import ReportesPage from "./pages/Reportes"
+//import ReportesDebug from './pages/ReportesDebug'
+
 
 export default function App() {
   return (
@@ -66,6 +71,14 @@ export default function App() {
         element={
           <DashboardLayout>
             <UserManagement />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/dashboard/reportes"
+        element={
+          <DashboardLayout>
+            <ReportesPage />
           </DashboardLayout>
         }
       />

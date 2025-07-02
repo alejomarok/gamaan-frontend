@@ -26,6 +26,7 @@ export default function CreditoPersonalForm() {
     situacionLaboral: "",
     estado: "pendiente",
     observaciones: "",
+    fechaCreacion: new Date().toISOString(),
   })
 
   const enviarSolicitudAFirebase = async (data) => {

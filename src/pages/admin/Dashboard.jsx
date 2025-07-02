@@ -1,8 +1,9 @@
-import ApplicationsTable from "../../components/Dashboard/ApplicationsTable"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import UserManagement from "../Users"
 import CalculadorTasas from "../CalculadorTasas"
 import SolicitudesPage from "../Solicitudes"
+import ReportesPage from "../Reportes"
+
 export default function Dashboard() {
   return (
     <div className="space-y-6">
@@ -38,6 +39,16 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <CalculadorTasas />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Reportes</CardTitle>
+          <CardDescription>Visualiza y genera reportes de las solicitudes.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ReportesPage />
         </CardContent>
       </Card>
 

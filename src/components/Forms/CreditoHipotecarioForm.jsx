@@ -27,6 +27,7 @@ export default function CreditoHipotecarioForm() {
     ubicacion: "",
     observaciones: "",
     estado: "pendiente",
+    fechaCreacion: new Date().toISOString(),
   })
 
   const enviarSolicitudAFirebase = async (data) => {

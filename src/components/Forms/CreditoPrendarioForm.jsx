@@ -27,6 +27,8 @@ export default function CreditoPrendarioForm() {
     montoSolicitado: "",
     plazo: "",
     observaciones: "",
+    estado: "pendiente",
+    fechaCreacion: new Date().toISOString(),
   })
 
   const enviarSolicitudAFirebase = async (data) => {

@@ -2,7 +2,9 @@ import { Link, useLocation } from "react-router-dom"
 import { ArrowLeft, FileText, Home, LogOut, Settings, Users, X } from "lucide-react"
 import { Button } from "../ui/button"
 import { cn } from "../../lib/utils"
+import { FileBarChart } from "lucide-react"
 import logo2 from "../../assets/logo2.png"
+
 
 export default function DashboardSidebar({ open, setOpen }) {
   const location = useLocation()
@@ -23,9 +25,10 @@ const isActive = (path) => {
   const menuItems = [
     { title: "Dashboard", icon: Home, href: "/dashboard" },
     { title: "Solicitudes", icon: FileText, href: "/dashboard/Solicitudes" },
-    { title: "Configuraciones", icon: Settings, href: "/dashboard/settings" },
     { title: "Usuarios", icon: Users, href: "/dashboard/users" },
     { title: "Simulador de Crédito", icon: FileText, href: "/dashboard/calculador-tasas" },
+    { title: "Reportes", icon: FileBarChart, href: "/dashboard/reportes" },
+    { title: "Configuraciones", icon: Settings, href: "/dashboard/configuraciones" },
   ]
 
   return (
