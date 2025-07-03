@@ -4,6 +4,10 @@ import { Button } from "../ui/button"
 import { cn } from "../../lib/utils"
 import { FileBarChart } from "lucide-react"
 import logo2 from "../../assets/logo2.png"
+import { auth } from "../../firebaseconfig"
+import { signOut } from "firebase/auth"
+import { useNavigate } from "react-router-dom"
+
 
 
 export default function DashboardSidebar({ open, setOpen }) {
@@ -30,6 +34,18 @@ const isActive = (path) => {
     { title: "Reportes", icon: FileBarChart, href: "/dashboard/reportes" },
     { title: "Configuraciones", icon: Settings, href: "/dashboard/configuraciones" },
   ]
+
+  const navigate = useNavigate()
+
+const handleLogout = async () => {
+  try {
+    await signOut(auth)
+    navigate("/") // o navigate("/login") si preferís redirigir al login
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error)
+  }
+}
+
 
   return (
     <div
@@ -97,13 +113,14 @@ const isActive = (path) => {
           </Link>
         </Button>
 
-        <Link
-          to="/login"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white transition-all hover:bg-[#004432]"
-        >
-          <LogOut className="h-4 w-4" />
-          Cerrar sesión
-        </Link>
+        <button
+  onClick={handleLogout}
+  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white transition-all hover:bg-[#004432]"
+>
+  <LogOut className="h-4 w-4" />
+  Cerrar sesión
+</button>
+
       </div>
     </div>
   )
