@@ -160,6 +160,13 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
 
   const isAdmin = user.role === 'admin';
 
+
+  const getSliderBackground = (value, min, max) => {
+  const percent = ((value - min) / (max - min)) * 100;
+  return `linear-gradient(to right, #003226 0%, #003226 ${percent}%, #ddd ${percent}%, #ddd 100%)`;
+};
+
+
   return (
     <div className="loan-calculator">
       {/* Header con configuración */}
@@ -305,14 +312,22 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
             </div>
             <div className="slider-container">
               <input
-                type="range"
-                min={configs[activeTab].minAmount}
-                max={configs[activeTab].maxAmount}
-                step="50000"
-                value={loanData[activeTab].amount}
-                onChange={(e) => updateLoanData(activeTab, 'amount', parseInt(e.target.value))}
-                className="slider amount-slider"
-              />
+  type="range"
+  min={configs[activeTab].minAmount}
+  max={configs[activeTab].maxAmount}
+  step="50000"
+  value={loanData[activeTab].amount}
+  onChange={(e) => updateLoanData(activeTab, 'amount', parseInt(e.target.value))}
+  className="slider amount-slider"
+  style={{
+    background: getSliderBackground(
+      loanData[activeTab].amount,
+      configs[activeTab].minAmount,
+      configs[activeTab].maxAmount
+    ),
+  }}
+/>
+
               <div className="slider-labels">
                 <span>{formatCurrency(configs[activeTab].minAmount)}</span>
                 <span>{formatCurrency(configs[activeTab].maxAmount)}</span>
@@ -328,14 +343,22 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
             </div>
             <div className="slider-container">
               <input
-                type="range"
-                min={configs[activeTab].minTerm}
-                max={configs[activeTab].maxTerm}
-                step="1"
-                value={loanData[activeTab].term}
-                onChange={(e) => updateLoanData(activeTab, 'term', parseInt(e.target.value))}
-                className="slider term-slider"
-              />
+  type="range"
+  min={configs[activeTab].minTerm}
+  max={configs[activeTab].maxTerm}
+  step="1"
+  value={loanData[activeTab].term}
+  onChange={(e) => updateLoanData(activeTab, 'term', parseInt(e.target.value))}
+  className="slider term-slider"
+  style={{
+    background: getSliderBackground(
+      loanData[activeTab].term,
+      configs[activeTab].minTerm,
+      configs[activeTab].maxTerm
+    ),
+  }}
+/>
+
               <div className="slider-labels">
                 <span>{configs[activeTab].minTerm} meses</span>
                 <span>{configs[activeTab].maxTerm} meses</span>
