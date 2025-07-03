@@ -163,7 +163,7 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
 
   const getSliderBackground = (value, min, max) => {
   const percent = ((value - min) / (max - min)) * 100;
-  return `linear-gradient(to right, #003226 0%, #003226 ${percent}%, #ddd ${percent}%, #ddd 100%)`;
+  return `linear-gradient(to right, #003226 0%, #003226 ${percent}%, #DBC5A8 ${percent}%, #DBC5A8 100%)`;
 };
 
 
@@ -275,9 +275,10 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
         <div className="simulator-header">
           <div className="simulator-icon"></div>
           <div>
-            <h1>Simulador de Crédito</h1>
-            <p>Calculá el monto de tus cuotas mensuales</p>
-          </div>
+  <h1>Simulador de Crédito</h1>
+  <p style={{ color: "#DBC5A8" }}>Calculá el monto de tus cuotas mensuales</p>
+</div>
+
         </div>
 
         {/* Tabs de tipos de crédito */}
@@ -308,7 +309,7 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
           <div className="control-group">
             <div className="control-header">
               <label>Monto del préstamo</label>
-              <span className="control-value">{formatCurrency(loanData[activeTab].amount)}</span>
+              <span className="control-value" >{formatCurrency(loanData[activeTab].amount)}</span>
             </div>
             <div className="slider-container">
               <input

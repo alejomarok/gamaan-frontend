@@ -10,6 +10,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from "../firebaseconfig"
 import { useAuth } from "../context/AuthContext"
+import  logoSolo2  from "../assets/logoSolo2.png"
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
@@ -56,11 +57,15 @@ export default function Login() {
         <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-6">
             <div
-              className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#003226" }}
-            >
-              <span className="text-2xl font-bold text-white">G</span>
-            </div>
+  className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
+  style={{ backgroundColor: "#003226" }}
+>
+  <img
+    src={logoSolo2}
+    alt="LogoSolo2"
+    className="w-8 h-12 object-contain"
+  />
+</div>
             <CardTitle className="text-2xl font-bold text-gray-900">Bienvenido a Gamaan</CardTitle>
             <CardDescription className="text-gray-600">
               Ingresa a tu cuenta para continuar
