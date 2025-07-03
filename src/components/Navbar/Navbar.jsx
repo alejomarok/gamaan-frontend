@@ -1,13 +1,34 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Menu } from "lucide-react"
 import { Button } from "../ui/button"
 import logo from "../../assets/logo.png"
 
+import { auth, db } from "../../firebaseconfig"
+import { onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userData, setUserData] = useState(null)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid)
+        const docSnap = await getDoc(docRef)
+        if (docSnap.exists()) {
+          setUserData(docSnap.data())
+        }
+      } else {
+        setUserData(null)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -40,22 +61,34 @@ export default function Navbar() {
             Contacto
           </a>
 
-          {/* Login y Dashboard SOLO en mobile */}
+          {/* Mobile: Login o Nombre */}
           <div className="flex flex-col gap-2 md:hidden">
-            <Button variant="outline" asChild>
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-            </Button>
+            {userData ? (
+              <span className="text-[#003226] font-medium px-2">
+                 {userData.firstName} {userData.lastName}
+              </span>
+            ) : (
+              <Button variant="outline" asChild>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+              </Button>
+            )}
             <Button asChild>
               <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Acceso Clientes</Link>
             </Button>
           </div>
         </nav>
 
-        {/* Botones (solo escritorio) */}
+        {/* Escritorio: Login o Nombre */}
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/login">Login</Link>
-          </Button>
+          {userData ? (
+            <span className="text-[#003226] font-medium px-2">
+              {userData.firstName} {userData.lastName}
+            </span>
+          ) : (
+            <Button variant="outline" asChild>
+              <Link to="/login">Login</Link>
+            </Button>
+          )}
           <Button asChild>
             <Link to="/dashboard">Acceso Clientes</Link>
           </Button>

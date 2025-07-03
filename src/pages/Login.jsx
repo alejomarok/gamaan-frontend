@@ -1,12 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { auth } from "../firebaseconfig"
+import { useAuth } from "../context/AuthContext"
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
@@ -14,6 +17,9 @@ export default function Login() {
     email: "",
     password: "",
   })
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -23,10 +29,17 @@ export default function Login() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Aquí se implementará la lógica de autenticación
-    console.log("Login attempt:", formData)
+    setError("")
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password)
+      login(userCredential.user) // actualiza el contexto
+      navigate("/") // redirecciona a home
+    } catch (err) {
+      setError("Email o contraseña incorrectos.")
+      console.error(err)
+    }
   }
 
   return (
@@ -42,16 +55,22 @@ export default function Login() {
 
         <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-6">
-            <div className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#003226' }}>
+            <div
+              className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: "#003226" }}
+            >
               <span className="text-2xl font-bold text-white">G</span>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Bienvenido a Gamaan</CardTitle>
-            <CardDescription className="text-gray-600">Ingresa a tu cuenta para continuar</CardDescription>
+            <CardDescription className="text-gray-600">
+              Ingresa a tu cuenta para continuar
+            </CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && <p className="text-red-600 text-sm">{error}</p>}
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700 font-medium">
                   Correo electrónico
@@ -117,7 +136,7 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full hover:bg-green-700 text-white font-medium py-2.5 transition-colors"
-                style={{ backgroundColor: '#003226' }}
+                style={{ backgroundColor: "#003226" }}
               >
                 Iniciar Sesión
               </Button>
@@ -134,7 +153,6 @@ export default function Login() {
           </CardFooter>
         </Card>
 
-        {/* Información adicional */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600 mb-4">¿Necesitas ayuda? Contáctanos</p>
           <div className="flex justify-center space-x-6 text-sm">

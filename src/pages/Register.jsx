@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
@@ -8,45 +6,54 @@ import { Label } from "../components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react"
 
-
-import { db } from "../firebaseconfig"; 
-import { collection, addDoc } from "firebase/firestore";
+import { db, auth } from "../firebaseconfig"
+import { createUserWithEmailAndPassword } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     password: "",
-    rol:"Cliente",
+    rol: "Cliente",
   })
-
-  // Función para enviar los datos del formulario a Firebase
-  const enviarDatosAFirebase = async (data) => {
-    try {
-      const docRef = await addDoc(collection(db, "users"), data)
-      alert("Usuario registrado correctamente. ¡Bienvenido! ", data.firstName)
-    } catch (e) {
-      console.error("Error registrando usuario: ", e)
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Aquí se implementará la lógica de registro
-    console.log("Intento de registro:", formData)
-    enviarDatosAFirebase(formData)
+
+    try {
+      // 1. Crear usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      )
+      const user = userCredential.user
+
+      // 2. Crear documento en Firestore con el mismo UID
+      await setDoc(doc(db, "users", user.uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        rol: formData.rol,
+        uid: user.uid, // lo agregamos explícitamente por si lo necesitás
+        createdAt: new Date().toISOString(),
+      })
+
+      alert("¡Registro exitoso!")
+    } catch (error) {
+      console.error("Error al registrar:", error)
+      alert("Ocurrió un error al registrarte: " + error.message)
+    }
   }
 
   return (
