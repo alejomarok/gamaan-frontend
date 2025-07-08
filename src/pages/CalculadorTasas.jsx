@@ -1,125 +1,201 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/calculadorTasas.css';
+"use client"
+import { useState, useEffect } from "react"
+import "../styles/calculadorTasas.css"
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore"
+import jsPDF from "jspdf"
 
 const CalculadorTasas = () => {
-  // Simulación de usuario - en producción vendría de tu sistema de auth
+  // Simulación de usuario - solo agencias pueden acceder
   const [user] = useState({
-    role: 'admin', // Cambiar a 'user' para probar sin permisos
-    name: 'Usuario Admin'
-  });
+    role: "admin", // admin o agency
+    name: "Agencia Central",
+    type: "agency", // Solo agencias pueden usar el simulador
+  })
 
-  const [showConfig, setShowConfig] = useState(false);
-  const [configSaved, setConfigSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState("prendario");
+  const [showConfig, setShowConfig] = useState(false)
+  const [configSaved, setConfigSaved] = useState(false)
 
-  const defaultConfigs = {
+  // Datos del vehículo
+  const [vehicleData, setVehicleData] = useState({
+    marca: "",
+    modelo: "",
+    año: new Date().getFullYear(),
+    version: "",
+    precioRevista: 0,
+    precioManual: 0,
+    usarPrecioManual: false,
+  })
+
+  // Configuración del simulador
+  const [configs, setConfigs] = useState({
     prendario: {
-      minRate: 25,
-      maxRate: 45,
-      defaultRate: 35,
-      minTerm: 6,
-      maxTerm: 60,
-      defaultTerm: 18,
+      tasaAnual: 35, // % Anual
+      cuotasMaximas: 60, // Cuotas máximas
+      porcentajeMaximo: 80, // % máximo del valor del vehículo
       minAmount: 500000,
       maxAmount: 7000000,
-      defaultAmount: 3500000,
-    },
-    personal: {
-      minRate: 30,
-      maxRate: 65,
-      defaultRate: 45,
       minTerm: 6,
-      maxTerm: 72,
-      defaultTerm: 24,
-      minAmount: 100000,
-      maxAmount: 5000000,
-      defaultAmount: 1500000,
+      maxTerm: 60,
     },
-    hipotecario: {
-      minRate: 8,
-      maxRate: 25,
-      defaultRate: 15,
-      minTerm: 60,
-      maxTerm: 360,
-      defaultTerm: 180,
-      minAmount: 2000000,
-      maxAmount: 50000000,
-      defaultAmount: 15000000,
-    },
-  };
+  })
 
-  const [configs, setConfigs] = useState(defaultConfigs);
+  // Cargar configuraciones desde Firebase al iniciar
+  useEffect(() => {
+    const loadConfigFromFirebase = async () => {
+      try {
+        const docRef = doc(db, "configuraciones", "simulador")
+        const docSnap = await getDoc(docRef)
+
+        if (docSnap.exists()) {
+          const firebaseConfig = docSnap.data()
+          setConfigs(firebaseConfig)
+          console.log("Configuración cargada desde Firebase:", firebaseConfig)
+        } else {
+          // Si no existe, crear configuración por defecto
+          await setDoc(docRef, configs)
+          console.log("Configuración por defecto creada en Firebase")
+        }
+      } catch (error) {
+        console.error("Error al cargar configuración:", error)
+      }
+    }
+
+    loadConfigFromFirebase()
+  }, [])
 
   const [loanData, setLoanData] = useState({
-    prendario: {
-      amount: configs.prendario.defaultAmount,
-      term: configs.prendario.defaultTerm,
-    },
-    personal: {
-      amount: configs.personal.defaultAmount,
-      term: configs.personal.defaultTerm,
-    },
-    hipotecario: {
-      amount: configs.hipotecario.defaultAmount,
-      term: configs.hipotecario.defaultTerm,
-    },
-  });
+    amount: 0,
+    term: 18,
+    vehicleValue: 0,
+  })
 
-  const [results, setResults] = useState({});
+  const [results, setResults] = useState({})
+  const [clientData, setClientData] = useState({
+    nombre: "",
+    apellido: "",
+    dni: "",
+    telefono: "",
+    email: "",
+  })
+
+  const [showClientForm, setShowClientForm] = useState(false)
+
+  // Simulación de API INFOAUTO
+  const buscarPrecioInfoauto = async (marca, modelo, año, version) => {
+    // Simulación de llamada a API
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Precio simulado basado en los datos
+        const precioBase = 2000000 + (año - 2010) * 100000
+        const factorMarca = marca.toLowerCase().includes("toyota")
+          ? 1.2
+          : marca.toLowerCase().includes("ford")
+            ? 1.1
+            : 1.0
+        resolve(Math.round(precioBase * factorMarca))
+      }, 1000)
+    })
+  }
+
+  // Buscar precio cuando cambien los datos del vehículo
+  useEffect(() => {
+    if (
+      vehicleData.marca &&
+      vehicleData.modelo &&
+      vehicleData.año &&
+      vehicleData.version &&
+      !vehicleData.usarPrecioManual
+    ) {
+      buscarPrecioInfoauto(vehicleData.marca, vehicleData.modelo, vehicleData.año, vehicleData.version).then(
+        (precio) => {
+          setVehicleData((prev) => ({ ...prev, precioRevista: precio }))
+          setLoanData((prev) => ({ ...prev, vehicleValue: precio }))
+        },
+      )
+    }
+  }, [vehicleData.marca, vehicleData.modelo, vehicleData.año, vehicleData.version, vehicleData.usarPrecioManual])
+
+  // Actualizar valor del vehículo cuando se use precio manual
+  useEffect(() => {
+    if (vehicleData.usarPrecioManual) {
+      setLoanData((prev) => ({ ...prev, vehicleValue: vehicleData.precioManual }))
+    } else {
+      setLoanData((prev) => ({ ...prev, vehicleValue: vehicleData.precioRevista }))
+    }
+  }, [vehicleData.usarPrecioManual, vehicleData.precioManual, vehicleData.precioRevista])
+
+  // Calcular monto máximo basado en % del vehículo
+  useEffect(() => {
+    if (loanData.vehicleValue > 0) {
+      const maxAmount = Math.round(loanData.vehicleValue * (configs.prendario.porcentajeMaximo / 100))
+      if (loanData.amount > maxAmount) {
+        setLoanData((prev) => ({ ...prev, amount: maxAmount }))
+      }
+    }
+  }, [loanData.vehicleValue, configs.prendario.porcentajeMaximo])
 
   // Función para calcular préstamos (Sistema Francés)
   const calculateLoan = (amount, annualRate, termMonths) => {
-    const monthlyRate = annualRate / 100 / 12;
-    const monthlyPayment = (amount * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) / 
-                          (Math.pow(1 + monthlyRate, termMonths) - 1);
-    const totalAmount = monthlyPayment * termMonths;
-    const totalInterest = totalAmount - amount;
+    const monthlyRate = annualRate / 100 / 12
+    const monthlyPayment =
+      (amount * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) / (Math.pow(1 + monthlyRate, termMonths) - 1)
+    const totalAmount = monthlyPayment * termMonths
+    const totalInterest = totalAmount - amount
 
     return {
       monthlyPayment,
       totalInterest,
       totalAmount,
-    };
-  };
+    }
+  }
 
   // Recalcular cuando cambien los datos
   useEffect(() => {
-    const newResults = {};
-    Object.keys(loanData).forEach((loanType) => {
-      const data = loanData[loanType];
-      const rate = configs[loanType].defaultRate;
-      newResults[loanType] = calculateLoan(data.amount, rate, data.term);
-    });
-    setResults(newResults);
-  }, [loanData, configs]);
+    if (loanData.amount > 0 && loanData.term > 0) {
+      const result = calculateLoan(loanData.amount, configs.prendario.tasaAnual, loanData.term)
+      setResults(result)
+    }
+  }, [loanData, configs.prendario.tasaAnual])
 
-  const updateLoanData = (loanType, field, value) => {
-    setLoanData(prev => ({
+  const updateLoanData = (field, value) => {
+    setLoanData((prev) => ({
       ...prev,
-      [loanType]: {
-        ...prev[loanType],
+      [field]: value,
+    }))
+  }
+
+  const updateConfig = (field, value) => {
+    setConfigs((prev) => ({
+      ...prev,
+      prendario: {
+        ...prev.prendario,
         [field]: value,
       },
-    }));
-  };
+    }))
+    setConfigSaved(false)
+  }
 
-  const updateConfig = (loanType, field, value) => {
-    setConfigs(prev => ({
+  const updateVehicleData = (field, value) => {
+    setVehicleData((prev) => ({
       ...prev,
-      [loanType]: {
-        ...prev[loanType],
-        [field]: value,
-      },
-    }));
-    setConfigSaved(false);
-  };
+      [field]: value,
+    }))
+  }
 
-  const saveConfiguration = () => {
-    console.log('Configuración guardada:', configs);
-    localStorage.setItem('loanConfigs', JSON.stringify(configs));
-    setConfigSaved(true);
-    setTimeout(() => setConfigSaved(false), 3000);
-  };
+  const saveConfiguration = async () => {
+    try {
+      const docRef = doc(db, "configuraciones", "simulador")
+      await setDoc(docRef, configs)
+
+      console.log("Configuración guardada en Firebase:", configs)
+      localStorage.setItem("loanConfigs", JSON.stringify(configs))
+      setConfigSaved(true)
+      setTimeout(() => setConfigSaved(false), 3000)
+    } catch (error) {
+      console.error("Error al guardar configuración:", error)
+      alert("Error al guardar la configuración. Intente nuevamente.")
+    }
+  }
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-AR", {
@@ -127,58 +203,216 @@ const CalculadorTasas = () => {
       currency: "ARS",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
-  };
+    }).format(amount)
+  }
 
-  const formatCurrencyDetailed = (amount) => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getLoanTypeTitle = (type) => {
-    const titles = {
-      prendario: "Crédito Prendario",
-      personal: "Crédito Personal", 
-      hipotecario: "Crédito Hipotecario",
-    };
-    return titles[type];
-  };
-
-  const handleSolicitarCredito = () => {
-    const currentLoan = loanData[activeTab];
-    const currentResult = results[activeTab];
-    alert(`Solicitud de ${getLoanTypeTitle(activeTab)}:
-Monto: ${formatCurrency(currentLoan.amount)}
-Plazo: ${currentLoan.term} meses
-Cuota mensual: ${formatCurrencyDetailed(currentResult.monthlyPayment)}
-Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
-  };
-
-  const isAdmin = user.role === 'admin';
-
+  const getMaxLoanAmount = () => {
+    if (loanData.vehicleValue > 0) {
+      return Math.round(loanData.vehicleValue * (configs.prendario.porcentajeMaximo / 100))
+    }
+    return configs.prendario.maxAmount
+  }
 
   const getSliderBackground = (value, min, max) => {
-  const percent = ((value - min) / (max - min)) * 100;
-  return `linear-gradient(to right, #003226 0%, #003226 ${percent}%, #DBC5A8 ${percent}%, #DBC5A8 100%)`;
-};
+    const percent = ((value - min) / (max - min)) * 100
+    return `linear-gradient(to right, #003226 0%, #003226 ${percent}%, #DBC5A8 ${percent}%, #DBC5A8 100%)`
+  }
 
+  // Generar PDF y enviar por WhatsApp
+  const generarPDFyWhatsApp = async () => {
+    if (!results.monthlyPayment) {
+      alert("Por favor complete todos los datos del vehículo y simulación")
+      return
+    }
+
+    try {
+      // Importar jsPDF dinámicamente
+      const jsPDF = (await import("jspdf")).default
+
+      // Crear nuevo documento PDF
+      const doc = new jsPDF()
+
+      // Configurar fuente
+      doc.setFont("helvetica")
+
+      // Header - Logo y título
+      doc.setFontSize(20)
+      doc.setTextColor(26, 95, 63) // Verde corporativo
+      doc.text("CRÉDITO PRENDARIO", 105, 30, { align: "center" })
+
+      // Línea separadora
+      doc.setDrawColor(26, 95, 63)
+      doc.setLineWidth(0.5)
+      doc.line(20, 35, 190, 35)
+
+      // Datos del Vehículo
+      doc.setFontSize(14)
+      doc.setTextColor(0, 0, 0)
+      doc.text("DATOS DEL VEHÍCULO", 20, 50)
+
+      doc.setFontSize(11)
+      const vehiculoInfo = [
+        `Marca: ${vehicleData.marca}`,
+        `Modelo: ${vehicleData.modelo}`,
+        `Año: ${vehicleData.año}`,
+        `Versión: ${vehicleData.version}`,
+        `Valor del vehículo: ${formatCurrency(loanData.vehicleValue)}`,
+      ]
+
+      vehiculoInfo.forEach((info, index) => {
+        doc.text(info, 25, 60 + index * 8)
+      })
+
+      // Datos del Préstamo
+      doc.setFontSize(14)
+      doc.text("DATOS DEL PRÉSTAMO", 20, 110)
+
+      doc.setFontSize(11)
+      const prestamoInfo = [
+        `Monto del préstamo: ${formatCurrency(loanData.amount)}`,
+        `Plazo en meses: ${loanData.term} meses`,
+        `Tasa anual: ${configs.prendario.tasaAnual}%`,
+      ]
+
+      prestamoInfo.forEach((info, index) => {
+        doc.text(info, 25, 120 + index * 8)
+      })
+
+      // Cuota Mensual - Destacada
+      doc.setFillColor(240, 248, 244) // Verde claro
+      doc.rect(20, 150, 170, 25, "F")
+
+      doc.setFontSize(16)
+      doc.setTextColor(26, 95, 63)
+      doc.text("CUOTA MENSUAL", 105, 165, { align: "center" })
+
+      doc.setFontSize(20)
+      doc.text(formatCurrency(results.monthlyPayment), 105, 172, { align: "center" })
+
+      // Información adicional
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text("* Simulación sujeta a aprobación crediticia", 20, 190)
+      doc.text("* Las condiciones pueden variar según evaluación", 20, 195)
+
+      // Footer
+      doc.setFontSize(12)
+      doc.setTextColor(26, 95, 63)
+      doc.text("Informe generado por Financiera Gaaman", 105, 220, { align: "center" })
+
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      const fecha = new Date().toLocaleDateString("es-AR")
+      doc.text(`Fecha: ${fecha}`, 105, 230, { align: "center" })
+
+      // Línea final
+      doc.line(20, 235, 190, 235)
+
+      // Generar nombre del archivo
+      const nombreArchivo = `Credito_Prendario_${vehicleData.marca}_${vehicleData.modelo}_${fecha.replace(/\//g, "-")}.pdf`
+
+      // Descargar el PDF automáticamente
+      doc.save(nombreArchivo)
+
+      // Mensaje para WhatsApp con instrucciones
+      const mensaje = `*CRÉDITO PRENDARIO*
+    
+*DATOS DEL VEHÍCULO*
+• Marca: ${vehicleData.marca}
+• Modelo: ${vehicleData.modelo}
+• Año: ${vehicleData.año}
+• Versión: ${vehicleData.version}
+• Valor: ${formatCurrency(loanData.vehicleValue)}
+
+*INFORME EN PDF:* ${nombreArchivo} se adjuntó al mensaje
+
+_Informe generado por Financiera Gaaman_
+¡Consultá por más información!`
+
+      // Pequeño delay para asegurar que la descarga se inicie
+      setTimeout(() => {
+        // Abrir WhatsApp
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`
+        window.open(whatsappUrl, "_blank")
+
+        // Mostrar instrucciones al usuario
+        alert(
+          `✅ PDF generado y descargado como: ${nombreArchivo}\n\n📱 WhatsApp se abrirá ahora.\n\n📎 Para enviar el PDF:\n1. Adjunta el archivo descargado al chat\n2. Envía el mensaje`,
+        )
+      }, 500)
+
+      console.log("PDF generado y descargado:", nombreArchivo)
+    } catch (error) {
+      console.error("Error al generar PDF:", error)
+      alert("Error al generar el PDF. Verifique que jsPDF esté instalado correctamente.")
+    }
+  }
+
+  // Solicitar crédito
+  const solicitarCredito = () => {
+    if (!results.monthlyPayment) {
+      alert("Por favor complete todos los datos del vehículo y simulación")
+      return
+    }
+    setShowClientForm(true)
+  }
+
+  const enviarSolicitudCredito = () => {
+    if (!clientData.nombre || !clientData.apellido || !clientData.dni || !clientData.telefono) {
+      alert("Por favor complete todos los campos obligatorios")
+      return
+    }
+
+    const solicitud = {
+      cliente: clientData,
+      vehiculo: vehicleData,
+      prestamo: {
+        monto: loanData.amount,
+        plazo: loanData.term,
+        cuotaMensual: results.monthlyPayment,
+        totalAPagar: results.totalAmount,
+      },
+      fecha: new Date().toISOString(),
+    }
+
+    console.log("Solicitud de crédito enviada:", solicitud)
+    alert("Solicitud de crédito enviada correctamente. Nos contactaremos pronto.")
+    setShowClientForm(false)
+    setClientData({
+      nombre: "",
+      apellido: "",
+      dni: "",
+      telefono: "",
+      email: "",
+    })
+  }
+
+  const isAdmin = user.role === "admin"
+  const isAgency = user.type === "agency"
+
+  // Solo agencias pueden acceder
+  if (!isAgency) {
+    return (
+      <div className="loan-calculator">
+        <div style={{ textAlign: "center", padding: "50px", background: "white", borderRadius: "15px" }}>
+          <h2>Acceso Restringido</h2>
+          <p>Este simulador está disponible únicamente para agencias autorizadas.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="loan-calculator">
       {/* Header con configuración */}
       <div className="admin-header">
         <div className="admin-info">
-          <span>Usuario: {user.name} ({user.role})</span>
+          <span>
+            Agencia: {user.name} ({user.role})
+          </span>
         </div>
         {isAdmin && (
-          <button
-            className={`config-button ${showConfig ? 'active' : ''}`}
-            onClick={() => setShowConfig(!showConfig)}
-          >
+          <button className={`config-button ${showConfig ? "active" : ""}`} onClick={() => setShowConfig(!showConfig)}>
             <span className="settings-icon">⚙️</span>
             Configuración
           </button>
@@ -189,118 +423,173 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
       {showConfig && isAdmin && (
         <div className="config-panel">
           <div className="config-header">
-            <h2>Configuración de Parámetros</h2>
-            <p>Ajusta los rangos, tasas y valores por defecto para cada tipo de crédito</p>
+            <h2>Configuración del Simulador</h2>
+            <p>Ajusta los parámetros del crédito prendario</p>
           </div>
           <div className="config-content">
             <div className="config-grid">
-              {Object.keys(configs).map((loanType) => (
-                <div key={loanType} className="config-section">
-                  <h3>{getLoanTypeTitle(loanType)}</h3>
-                  <div className="config-inputs">
-                    <div className="input-group">
-                      <label>Tasa Mín. (%)</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].minRate}
-                        onChange={(e) => updateConfig(loanType, "minRate", parseFloat(e.target.value))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Tasa Máx. (%)</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].maxRate}
-                        onChange={(e) => updateConfig(loanType, "maxRate", parseFloat(e.target.value))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Tasa por Defecto (%)</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].defaultRate}
-                        onChange={(e) => updateConfig(loanType, "defaultRate", parseFloat(e.target.value))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Plazo Mín. (meses)</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].minTerm}
-                        onChange={(e) => updateConfig(loanType, "minTerm", parseInt(e.target.value))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Plazo Máx. (meses)</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].maxTerm}
-                        onChange={(e) => updateConfig(loanType, "maxTerm", parseInt(e.target.value))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Monto Mín.</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].minAmount}
-                        onChange={(e) => updateConfig(loanType, "minAmount", parseInt(e.target.value))}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label>Monto Máx.</label>
-                      <input
-                        type="number"
-                        value={configs[loanType].maxAmount}
-                        onChange={(e) => updateConfig(loanType, "maxAmount", parseInt(e.target.value))}
-                      />
-                    </div>
+              <div className="config-section">
+                <h3>Crédito Prendario</h3>
+                <div className="config-inputs">
+                  <div className="input-group">
+                    <label>% Anual</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={configs.prendario.tasaAnual}
+                      onChange={(e) => updateConfig("tasaAnual", Number.parseFloat(e.target.value))}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Cuotas Máximas</label>
+                    <input
+                      type="number"
+                      value={configs.prendario.cuotasMaximas}
+                      onChange={(e) => updateConfig("cuotasMaximas", Number.parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>% Máximo del Valor del Vehículo</label>
+                    <input
+                      type="number"
+                      value={configs.prendario.porcentajeMaximo}
+                      onChange={(e) => updateConfig("porcentajeMaximo", Number.parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Monto Mínimo</label>
+                    <input
+                      type="number"
+                      value={configs.prendario.minAmount}
+                      onChange={(e) => updateConfig("minAmount", Number.parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Plazo Mínimo (meses)</label>
+                    <input
+                      type="number"
+                      value={configs.prendario.minTerm}
+                      onChange={(e) => updateConfig("minTerm", Number.parseInt(e.target.value))}
+                    />
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
             <div className="config-actions">
-              <button 
-                className={`save-button ${configSaved ? 'saved' : ''}`}
-                onClick={saveConfiguration}
-              >
-                {configSaved ? '✅ Guardado' : '💾 Guardar Configuración'}
+              <button className={`save-button ${configSaved ? "saved" : ""}`} onClick={saveConfiguration}>
+                {configSaved ? "✅ Guardado" : "💾 Guardar Configuración"}
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Datos del Vehículo */}
+      <div className="simulator-container" style={{ marginBottom: "20px" }}>
+        <div className="simulator-header">
+          <div className="simulator-icon">🚗</div>
+          <div>
+            <h1>Datos del Vehículo</h1>
+            <p style={{ color: "#DBC5A8" }}>Ingresá los datos para obtener el precio de revista</p>
+          </div>
+        </div>
+
+        <div className="simulator-controls">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "20px",
+              marginBottom: "20px",
+            }}
+          >
+            <div className="input-group">
+              <label>Marca</label>
+              <input
+                type="text"
+                value={vehicleData.marca}
+                onChange={(e) => updateVehicleData("marca", e.target.value)}
+                placeholder="Ej: Toyota"
+                style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+              />
+            </div>
+            <div className="input-group">
+              <label>Modelo</label>
+              <input
+                type="text"
+                value={vehicleData.modelo}
+                onChange={(e) => updateVehicleData("modelo", e.target.value)}
+                placeholder="Ej: Corolla"
+                style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+              />
+            </div>
+            <div className="input-group">
+              <label>Año</label>
+              <input
+                type="number"
+                min="1990"
+                max={new Date().getFullYear() + 1}
+                value={vehicleData.año}
+                onChange={(e) => updateVehicleData("año", Number.parseInt(e.target.value))}
+                style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+              />
+            </div>
+            <div className="input-group">
+              <label>Versión</label>
+              <input
+                type="text"
+                value={vehicleData.version}
+                onChange={(e) => updateVehicleData("version", e.target.value)}
+                placeholder="Ej: XEI 1.8"
+                style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
+            <div className="result-card">
+              <div className="result-label">Precio de Revista (INFOAUTO)</div>
+              <div className="result-amount">{formatCurrency(vehicleData.precioRevista)}</div>
+            </div>
+            <div>
+              <div style={{ marginBottom: "10px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={vehicleData.usarPrecioManual}
+                    onChange={(e) => updateVehicleData("usarPrecioManual", e.target.checked)}
+                  />
+                  Usar precio manual
+                </label>
+              </div>
+              {vehicleData.usarPrecioManual && (
+                <input
+                  type="number"
+                  value={vehicleData.precioManual}
+                  onChange={(e) => updateVehicleData("precioManual", Number.parseInt(e.target.value))}
+                  placeholder="Ingrese precio manual"
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    border: "2px solid #e0e0e0",
+                    borderRadius: "8px",
+                    fontSize: "16px",
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Simulador de Crédito */}
       <div className="simulator-container">
         <div className="simulator-header">
-          <div className="simulator-icon"></div>
+          <div className="simulator-icon">💰</div>
           <div>
-  <h1>Simulador de Crédito</h1>
-  <p style={{ color: "#DBC5A8" }}>Calculá el monto de tus cuotas mensuales</p>
-</div>
-
-        </div>
-
-        {/* Tabs de tipos de crédito */}
-        <div className="credit-tabs">
-          <button
-            className={`credit-tab ${activeTab === 'prendario' ? 'active' : ''}`}
-            onClick={() => setActiveTab('prendario')}
-          >
-            Crédito Prendario
-          </button>
-          <button
-            className={`credit-tab ${activeTab === 'personal' ? 'active' : ''}`}
-            onClick={() => setActiveTab('personal')}
-          >
-            Crédito Personal
-          </button>
-          <button
-            className={`credit-tab ${activeTab === 'hipotecario' ? 'active' : ''}`}
-            onClick={() => setActiveTab('hipotecario')}
-          >
-            Crédito Hipotecario
-          </button>
+            <h1>Simulador de Crédito Prendario</h1>
+            <p style={{ color: "#DBC5A8" }}>Calculá el monto de tus cuotas mensuales</p>
+          </div>
         </div>
 
         {/* Controles del simulador */}
@@ -309,30 +598,28 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
           <div className="control-group">
             <div className="control-header">
               <label>Monto del préstamo</label>
-              <span className="control-value" >{formatCurrency(loanData[activeTab].amount)}</span>
+              <span className="control-value">{formatCurrency(loanData.amount)}</span>
             </div>
             <div className="slider-container">
               <input
-  type="range"
-  min={configs[activeTab].minAmount}
-  max={configs[activeTab].maxAmount}
-  step="50000"
-  value={loanData[activeTab].amount}
-  onChange={(e) => updateLoanData(activeTab, 'amount', parseInt(e.target.value))}
-  className="slider amount-slider"
-  style={{
-    background: getSliderBackground(
-      loanData[activeTab].amount,
-      configs[activeTab].minAmount,
-      configs[activeTab].maxAmount
-    ),
-  }}
-/>
-
+                type="range"
+                min={configs.prendario.minAmount}
+                max={getMaxLoanAmount()}
+                step="50000"
+                value={loanData.amount}
+                onChange={(e) => updateLoanData("amount", Number.parseInt(e.target.value))}
+                className="slider amount-slider"
+                style={{
+                  background: getSliderBackground(loanData.amount, configs.prendario.minAmount, getMaxLoanAmount()),
+                }}
+              />
               <div className="slider-labels">
-                <span>{formatCurrency(configs[activeTab].minAmount)}</span>
-                <span>{formatCurrency(configs[activeTab].maxAmount)}</span>
+                <span>{formatCurrency(configs.prendario.minAmount)}</span>
+                <span>{formatCurrency(getMaxLoanAmount())}</span>
               </div>
+            </div>
+            <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+              Máximo: {configs.prendario.porcentajeMaximo}% del valor del vehículo
             </div>
           </div>
 
@@ -340,56 +627,154 @@ Total a pagar: ${formatCurrencyDetailed(currentResult.totalAmount)}`);
           <div className="control-group">
             <div className="control-header">
               <label>Plazo en meses</label>
-              <span className="control-value">{loanData[activeTab].term} meses</span>
+              <span className="control-value">{loanData.term} meses</span>
             </div>
             <div className="slider-container">
               <input
-  type="range"
-  min={configs[activeTab].minTerm}
-  max={configs[activeTab].maxTerm}
-  step="1"
-  value={loanData[activeTab].term}
-  onChange={(e) => updateLoanData(activeTab, 'term', parseInt(e.target.value))}
-  className="slider term-slider"
-  style={{
-    background: getSliderBackground(
-      loanData[activeTab].term,
-      configs[activeTab].minTerm,
-      configs[activeTab].maxTerm
-    ),
-  }}
-/>
-
+                type="range"
+                min={configs.prendario.minTerm}
+                max={configs.prendario.cuotasMaximas}
+                step="1"
+                value={loanData.term}
+                onChange={(e) => updateLoanData("term", Number.parseInt(e.target.value))}
+                className="slider term-slider"
+                style={{
+                  background: getSliderBackground(
+                    loanData.term,
+                    configs.prendario.minTerm,
+                    configs.prendario.cuotasMaximas,
+                  ),
+                }}
+              />
               <div className="slider-labels">
-                <span>{configs[activeTab].minTerm} meses</span>
-                <span>{configs[activeTab].maxTerm} meses</span>
+                <span>{configs.prendario.minTerm} meses</span>
+                <span>{configs.prendario.cuotasMaximas} meses</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Resultados */}
-        {results[activeTab] && (
+        {results.monthlyPayment && (
           <div className="results-section">
             <div className="result-cards">
               <div className="result-card">
                 <div className="result-label">Cuota mensual</div>
-                <div className="result-amount">{formatCurrencyDetailed(results[activeTab].monthlyPayment)}</div>
+                <div className="result-amount">{formatCurrency(results.monthlyPayment)}</div>
               </div>
               <div className="result-card">
-                <div className="result-label">Total a pagar</div>
-                <div className="result-amount">{formatCurrencyDetailed(results[activeTab].totalAmount)}</div>
+                <div className="result-label">Tasa anual</div>
+                <div className="result-amount">{configs.prendario.tasaAnual}%</div>
               </div>
             </div>
 
-            <button className="solicitar-button" onClick={handleSolicitarCredito}>
-              Solicitar este préstamo
-            </button>
+            {/* Botones de acción */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", marginTop: "20px" }}>
+              <button className="solicitar-button" onClick={generarPDFyWhatsApp} style={{ background: "#25D366" }}>
+                📄 Generar PDF y enviar por WhatsApp
+              </button>
+              <button className="solicitar-button" onClick={solicitarCredito}>
+                📋 Solicitar Crédito
+              </button>
+            </div>
           </div>
         )}
       </div>
-    </div>
-  );
-};
 
-export default CalculadorTasas;
+      {/* Modal para datos del cliente */}
+      {showClientForm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "30px",
+              borderRadius: "15px",
+              width: "90%",
+              maxWidth: "500px",
+              maxHeight: "90vh",
+              overflow: "auto",
+            }}
+          >
+            <h2 style={{ marginTop: 0, color: "#1a5f3f" }}>Datos del Cliente</h2>
+
+            <div style={{ display: "grid", gap: "15px" }}>
+              <div className="input-group">
+                <label>Nombre *</label>
+                <input
+                  type="text"
+                  value={clientData.nombre}
+                  onChange={(e) => setClientData((prev) => ({ ...prev, nombre: e.target.value }))}
+                  style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Apellido *</label>
+                <input
+                  type="text"
+                  value={clientData.apellido}
+                  onChange={(e) => setClientData((prev) => ({ ...prev, apellido: e.target.value }))}
+                  style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>DNI *</label>
+                <input
+                  type="text"
+                  value={clientData.dni}
+                  onChange={(e) => setClientData((prev) => ({ ...prev, dni: e.target.value }))}
+                  style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Teléfono *</label>
+                <input
+                  type="tel"
+                  value={clientData.telefono}
+                  onChange={(e) => setClientData((prev) => ({ ...prev, telefono: e.target.value }))}
+                  style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={clientData.email}
+                  onChange={(e) => setClientData((prev) => ({ ...prev, email: e.target.value }))}
+                  style={{ padding: "12px", border: "2px solid #e0e0e0", borderRadius: "8px", fontSize: "16px" }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button className="solicitar-button" onClick={enviarSolicitudCredito} style={{ flex: 1 }}>
+                Enviar Solicitud
+              </button>
+              <button className="config-button" onClick={() => setShowClientForm(false)} style={{ flex: 1 }}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default CalculadorTasas
