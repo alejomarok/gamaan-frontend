@@ -18,7 +18,7 @@ export default function Register() {
     email: "",
     phone: "",
     password: "",
-    rol: "Cliente",
+    rol: "user",
   })
 
   const handleInputChange = (e) => {
