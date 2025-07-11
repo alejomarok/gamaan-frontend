@@ -66,9 +66,9 @@ const UserManagement = () => {
       onChange={(e) => handleRoleChange(user.id, e.target.value)}
       className="role-selector"
     >
-      <option value="Concesionaria">Concesionaria</option>
-      <option value="Cliente">Cliente</option>
-      <option value="Empleado">Empleado</option>
+      <option value="concesionaria">Concesionaria</option>
+      <option value="user">User</option>
+      <option value="admin">Admin</option>
     </select>
   )
 

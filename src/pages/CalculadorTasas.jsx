@@ -1,16 +1,35 @@
 "use client"
 import { useState, useEffect } from "react"
 import "../styles/calculadorTasas.css"
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore"
-import jsPDF from "jspdf"
+import { doc, setDoc, getDoc } from "firebase/firestore"
+import { db } from "../firebaseconfig"
+import { useAuth } from "../context/AuthContext" // Declare the useAuth variable
 
 const CalculadorTasas = () => {
-  // Simulación de usuario - solo agencias pueden acceder
-  const [user] = useState({
-    role: "admin", // admin o agency
-    name: "Agencia Central",
-    type: "agency", // Solo agencias pueden usar el simulador
-  })
+  const { user } = useAuth() // Acá deberías tener el uid del usuario logueado
+
+  const [userData, setUserData] = useState(null)
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userRef = doc(db, "users", user.uid)
+        const userSnap = await getDoc(userRef)
+
+        if (userSnap.exists()) {
+          setUserData(userSnap.data())
+        } else {
+          console.log("No se encontró el usuario en Firestore")
+        }
+      } catch (error) {
+        console.error("Error al cargar datos del usuario:", error)
+      }
+    }
+
+    if (user?.uid) {
+      loadUserData()
+    }
+  }, [user?.uid])
 
   const [showConfig, setShowConfig] = useState(false)
   const [configSaved, setConfigSaved] = useState(false)
@@ -387,31 +406,15 @@ _Informe generado por Financiera Gaaman_
     })
   }
 
-  const isAdmin = user.role === "admin"
-  const isAgency = user.type === "agency"
-
-  // Solo agencias pueden acceder
-  if (!isAgency) {
-    return (
-      <div className="loan-calculator">
-        <div style={{ textAlign: "center", padding: "50px", background: "white", borderRadius: "15px" }}>
-          <h2>Acceso Restringido</h2>
-          <p>Este simulador está disponible únicamente para agencias autorizadas.</p>
-        </div>
-      </div>
-    )
-  }
+  const isAdmin = userData?.rol === "admin"
 
   return (
     <div className="loan-calculator">
       {/* Header con configuración */}
       <div className="admin-header">
         <div className="admin-info">
-          <span>
-            Agencia: {user.name} ({user.role})
-          </span>
         </div>
-        {isAdmin && (
+        {userData && isAdmin && (
           <button className={`config-button ${showConfig ? "active" : ""}`} onClick={() => setShowConfig(!showConfig)}>
             <span className="settings-icon">⚙️</span>
             Configuración
@@ -420,7 +423,7 @@ _Informe generado por Financiera Gaaman_
       </div>
 
       {/* Panel de configuración */}
-      {showConfig && isAdmin && (
+      {showConfig && userData && isAdmin && (
         <div className="config-panel">
           <div className="config-header">
             <h2>Configuración del Simulador</h2>
@@ -477,7 +480,7 @@ _Informe generado por Financiera Gaaman_
             </div>
             <div className="config-actions">
               <button className={`save-button ${configSaved ? "saved" : ""}`} onClick={saveConfiguration}>
-                {configSaved ? "✅ Guardado" : "💾 Guardar Configuración"}
+                {configSaved ? "✅ Guardado" : " Guardar Configuración"}
               </button>
             </div>
           </div>
@@ -487,7 +490,7 @@ _Informe generado por Financiera Gaaman_
       {/* Datos del Vehículo */}
       <div className="simulator-container" style={{ marginBottom: "20px" }}>
         <div className="simulator-header">
-          <div className="simulator-icon">🚗</div>
+          <div className="simulator-icon"></div>
           <div>
             <h1>Datos del Vehículo</h1>
             <p style={{ color: "#DBC5A8" }}>Ingresá los datos para obtener el precio de revista</p>
@@ -585,7 +588,7 @@ _Informe generado por Financiera Gaaman_
       {/* Simulador de Crédito */}
       <div className="simulator-container">
         <div className="simulator-header">
-          <div className="simulator-icon">💰</div>
+          <div className="simulator-icon"></div>
           <div>
             <h1>Simulador de Crédito Prendario</h1>
             <p style={{ color: "#DBC5A8" }}>Calculá el monto de tus cuotas mensuales</p>
@@ -671,10 +674,10 @@ _Informe generado por Financiera Gaaman_
             {/* Botones de acción */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", marginTop: "20px" }}>
               <button className="solicitar-button" onClick={generarPDFyWhatsApp} style={{ background: "#25D366" }}>
-                📄 Generar PDF y enviar por WhatsApp
+                 Generar PDF y enviar por WhatsApp
               </button>
               <button className="solicitar-button" onClick={solicitarCredito}>
-                📋 Solicitar Crédito
+                 Solicitar Crédito
               </button>
             </div>
           </div>
