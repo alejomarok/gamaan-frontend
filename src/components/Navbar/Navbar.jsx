@@ -76,9 +76,22 @@ export default function Navbar() {
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                 </Button>
               )}
-              <Button asChild>
-                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Acceso Clientes</Link>
-              </Button>
+            {userData && (
+  <Button
+    onClick={() => {
+      setMobileMenuOpen(false)
+      if (userData.rol === "admin") {
+        navigate("/dashboard")
+      } else {
+        navigate("/dashboard/solicitudes")
+      }
+    }}
+  >
+    Acceso Clientes
+  </Button>
+)}
+
+
             </div>
           )}
         </nav>
@@ -101,9 +114,21 @@ export default function Navbar() {
                 <Link to="/login">Login</Link>
               </Button>
             )}
-            <Button asChild>
-              <Link to="/dashboard">Acceso Clientes</Link>
-            </Button>
+           {userData && (
+  <Button
+    onClick={() => {
+      if (userData.rol === "admin") {
+        navigate("/dashboard")
+      } else {
+        navigate("/dashboard/solicitudes")
+      }
+    }}
+  >
+    Acceso Clientes
+  </Button>
+)}
+
+
           </div>
         )}
 
